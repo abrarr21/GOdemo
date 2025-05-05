@@ -66,6 +66,26 @@ func userHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// combining both query params + path
+// http://localhost:6969/username/123?includeDetails=true
+func usernameHandler(w http.ResponseWriter, r *http.Request) {
+	pathSegments := strings.Split(r.URL.Path, "/")
+	query := r.URL.Query()
+	includeDetails := query.Get("includeDetails")
+
+	if len(pathSegments) >= 3 && pathSegments[1] == "username" {
+		userID := pathSegments[2]
+		response := fmt.Sprintf("UserID: %s", userID)
+		if includeDetails == "true" {
+			response += " (Details included)"
+		}
+		fmt.Fprintln(w, response)
+
+	} else {
+		http.NotFound(w, r)
+	}
+}
+
 func main() {
 	mux := http.NewServeMux()
 
@@ -73,6 +93,7 @@ func main() {
 	mux.Handle("/about", http.HandlerFunc(aboutHandler))
 	mux.Handle("/greet", http.HandlerFunc(greetHandler))
 	mux.Handle("/user/", http.HandlerFunc(userHandler))
+	mux.Handle("/username/", http.HandlerFunc(usernameHandler))
 
 	log.Println("Starting the SERVER at port: 6969")
 	if err := http.ListenAndServe(":6969", mux); err != nil {
